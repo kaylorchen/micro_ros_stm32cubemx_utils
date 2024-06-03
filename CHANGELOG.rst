@@ -2,8 +2,8 @@
 Changelog for package micro_ros_stmcube
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+6.0.0 (2024-06-03)
+------------------
 * Add UDP transport (`#134 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/134>`_) (`#135 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/135>`_)
   * Add UDP transport
   * Apply suggestions from code review
