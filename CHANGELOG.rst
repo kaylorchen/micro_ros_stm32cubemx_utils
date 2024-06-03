@@ -2,6 +2,26 @@
 Changelog for package micro_ros_stmcube
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add UDP transport (`#134 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/134>`_)
+  * Add UDP transport
+  * Apply suggestions from code review
+  Co-authored-by: Pablo Garrido <pablogs9@gmail.com>
+  * Update README and modify recv flag
+  * Update udp_transport.c
+  * Apply suggestions from code review
+  Co-authored-by: Pablo Garrido <pablogs9@gmail.com>
+  * Update udp_transport.c
+  * Minor fixes on readme
+  ---------
+  Co-authored-by: Pablo Garrido <pablogs9@gmail.com>
+* Workaround to use STMCubeIDE in Windows 11 (`#127 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/127>`_)
+  Co-authored-by: Pablo Garrido <pablogs9@gmail.com>
+* Update README.md (`#103 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/103>`_)
+  Just a small update the settings tab under Projects in CubeIDE is replaced by Properties
+* Contributors: Leonardo, Lion Hao, Rajesh Nagula
+
 4.1.0 (2023-06-12)
 ------------------
 * Update branches (`#101 <https://github.com/micro-ROS/micro_ros_stm32cubemx_utils/issues/101>`_)
