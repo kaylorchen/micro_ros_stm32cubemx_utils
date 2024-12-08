@@ -20,9 +20,8 @@ jobs:
     - name: Run build script
       run: |
         docker pull microros/micro_ros_static_library_builder:humble
-        cd ../
-        docker run --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=micro_ros_stm32cubemx_utils/microros_static_library microros/micro_ros_static_library_builder:humble
-        tar -czvf libmicroros.tar.gz micro_ros_stm32cubemx_utils/microros_static_library/libmicroros
+        docker run --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=microros_static_library microros/micro_ros_static_library_builder:humble
+        tar -czvf libmicroros.tar.gz microros_static_library/libmicroros
 
 
     - name: Upload artifact
