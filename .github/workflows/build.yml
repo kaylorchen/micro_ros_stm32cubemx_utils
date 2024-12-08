@@ -1,0 +1,32 @@
+name: Build and Upload Artifact
+
+# 触发工作流的事件
+on:
+  push:
+    branches:
+      - kaylor
+  pull_request:
+    branches:
+      - kaylor
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Run build script
+      run: |
+        docker pull microros/micro_ros_static_library_builder:humble
+        cd ../
+        docker run --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=micro_ros_stm32cubemx_utils/microros_static_library microros/micro_ros_static_library_builder:humble
+        tar -czvf libmicroros.tar.gz micro_ros_stm32cubemx_utils/microros_static_library/libmicroros
+
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libmicroros
+        path: libmicroros.tar.gz
