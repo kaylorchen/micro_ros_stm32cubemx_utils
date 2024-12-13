@@ -1,0 +1,11 @@
+Source: libmicroros-stm32f407-dev
+Section: misc
+Priority: optional
+Maintainer: Kaylor Chen <kaylor.chen@qq.com>
+Rules-Requires-Root: no
+Build-Depends: debhelper (>= 7.0.0~)
+
+Package: libmicroros-stm32f407-dev
+Architecture: all
+Description: a simple debian package
+

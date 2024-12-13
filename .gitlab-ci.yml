@@ -1,0 +1,11 @@
+include:
+  - local: .gitlab-ci/packaging-deb.yml
+
+
+  - project: amr/pipeline
+    ref: "master"
+    file: "distribute.yml"
+
+stages:
+  - packaging
+  - distribute

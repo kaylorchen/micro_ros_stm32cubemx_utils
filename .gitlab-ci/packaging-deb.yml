@@ -1,0 +1,124 @@
+spec:
+  inputs:
+    dist:
+      default: "jammy"
+    arch:
+      default: "amd64"
+    image:
+      default: "uros"
+    packages:
+      default: ".gitlab-ci/packages.list"
+    prepare:
+      default: ".gitlab-ci/prepare.sh"
+    pull_policy:
+      default: "if-not-present"
+    mcu_type:
+      default: "f407"
+---
+"packaging-deb:$[[ inputs.dist ]]:$[[ inputs.arch ]]:$[[ inputs.mcu_type ]]":
+  variables:
+    EMAIL: kaylor.chen@qq.com
+    DIST: $[[ inputs.dist ]]
+    GIT_DEPTH: 1000
+    ARCH: $[[ inputs.arch ]]
+    MAX_LOG_SIZE: 52428800
+  image: 
+    name: $[[ inputs.image ]]
+    pull_policy: $[[ inputs.pull_policy ]]
+    entrypoint: [""]
+  stage: packaging
+  dependencies: [] # Prevent the job from fetching artifacts
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release"
+  tags:
+    - docker-${ARCH}
+  artifacts:
+    paths:
+      - .gitlab-ci/artifacts
+    expire_in: 1 week
+  script:
+    - set +e
+    - chmod a+x $[[ inputs.prepare ]] &&  $[[ inputs.prepare ]]
+    - set -xe
+    - SOURCE_ROOT=$(pwd)
+    - BASE_PATH=${SOURCE_ROOT}/microros_static_library
+    - echo "BASE_PATH = $BASE_PATH"
+    - VERSION=$(git describe --tags --long).${CI_COMMIT_REF_NAME}.$(TZ="Asia/Shanghai" date +"%Y%m%d.%H%M%S").${DIST}
+    - VERSION=$(echo ${VERSION} | tr _ -)
+    - mkdir -pv ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}
+    - cd /uros_ws
+    - git clone http://192.168.4.11/pub/microros/micro_ros_setup.git --depth 1 -b kaylor 
+    - rm install -rf
+    - source /opt/ros/$ROS_DISTRO/setup.bash
+    - colcon build
+    - source install/setup.bash
+    - ros2 run micro_ros_setup create_firmware_ws.sh generate_lib
+    - |+
+      pushd firmware/mcu_ws > /dev/null
+        git clone -b humble http://192.168.4.11/amr/3rd-party/ros2/geometry2.git
+        cp -R geometry2/tf2_msgs ros2/tf2_msgs
+        rm -rf geometry2
+        mkdir extra_packages
+        pushd extra_packages > /dev/null
+          USER_CUSTOM_PACKAGES_DIR=$BASE_PATH/../../microros_component/extra_packages 
+          if [ -d "$USER_CUSTOM_PACKAGES_DIR" ]; then
+              cp -R $USER_CUSTOM_PACKAGES_DIR/* .
+          fi
+          if [ -f $USER_CUSTOM_PACKAGES_DIR/extra_packages.repos ]; then
+            vcs import --input $USER_CUSTOM_PACKAGES_DIR/extra_packages.repos
+          fi
+          cp -R $BASE_PATH/library_generation/extra_packages/* .
+          cat extra_packages.repos
+          vcs import --input extra_packages.repos
+          git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.4.11/amr/common/jialin_interfaces.git --depth 1  ros2/jialin_interfaces
+        popd > /dev/null
+      popd > /dev/null
+      pushd ${SOURCE_ROOT} > /dev/null
+      cat $[[ inputs.mcu_type ]].cflags
+      export RET_CFLAGS=$(cat $[[ inputs.mcu_type ]].cflags)
+      RET_CODE=$?
+      if [ $RET_CODE = "0" ]; then
+          echo "Found CFLAGS:"
+          echo "-------------"
+          echo $RET_CFLAGS
+          echo "-------------"
+      else
+          echo "Please read README.md to update your Makefile"
+          exit 1;
+      fi
+      popd > /dev/null
+      export TOOLCHAIN_PREFIX=/usr/bin/arm-none-eabi-
+      ros2 run micro_ros_setup build_firmware.sh $BASE_PATH/library_generation/toolchain.cmake $BASE_PATH/library_generation/colcon.meta
+      find firmware/build/include/ -name "*.c"  -delete
+      rm -rf $BASE_PATH/libmicroros
+      mkdir -p $BASE_PATH/libmicroros/microros_include
+      cp -vR firmware/build/include/* $BASE_PATH/libmicroros/microros_include/
+      cp -vR firmware/build/libmicroros.a $BASE_PATH/libmicroros/libmicroros.a
+      pushd firmware/mcu_ws > /dev/null
+          INCLUDE_ROS2_PACKAGES=$(colcon list | awk '{print $1}' | awk -v d=" " '{s=(NR==1?s:s d)$0}END{print s}')
+      popd > /dev/null
+
+      for var in ${INCLUDE_ROS2_PACKAGES}; do
+          if [ -d "$BASE_PATH/libmicroros/microros_include/${var}/${var}" ]; then
+              rsync -r $BASE_PATH/libmicroros/microros_include/${var}/${var}/* $BASE_PATH/libmicroros/microros_include/${var}
+              rm -rf $BASE_PATH/libmicroros/microros_include/${var}/${var}
+          fi
+      done
+      find firmware/mcu_ws/ros2 \( -name "*.srv" -o -name "*.msg" -o -name "*.action" \) | awk -F"/" '{print $(NF-2)"/"$NF}' > $BASE_PATH/libmicroros/available_ros2_types
+      find firmware/mcu_ws/extra_packages \( -name "*.srv" -o -name "*.msg" -o -name "*.action" \) | awk -F"/" '{print $(NF-2)"/"$NF}' >> $BASE_PATH/libmicroros/available_ros2_types
+      cd firmware
+      echo "" > $BASE_PATH/libmicroros/built_packages
+      for f in $(find $(pwd) -name .git -type d); do pushd $f > /dev/null; echo $(git config --get remote.origin.url) $(git rev-parse HEAD) >> $BASE_PATH/libmicroros/built_packages; popd > /dev/null; done;
+      sudo chmod -R 777 $BASE_PATH/libmicroros/
+      sudo chmod -R 777 $BASE_PATH/libmicroros/microros_include/
+      sudo chmod -R 777 $BASE_PATH/libmicroros/libmicroros.a
+      DEBIAN_DIR=${SOURCE_ROOT}/$[[ inputs.mcu_type ]]
+      cp -vR ${SOURCE_ROOT}/extra_sources ${DEBIAN_DIR}/files/opt/microros_$[[ inputs.mcu_type ]]/
+      cp -vR $BASE_PATH/libmicroros ${DEBIAN_DIR}/files/opt/microros_$[[ inputs.mcu_type ]]/microros_static_library/
+      tar -czvf microros.tar.gz ${DEBIAN_DIR}/files/opt/microros_$[[ inputs.mcu_type ]]/
+      cp -vR microros.tar.gz ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}
+      pushd ${DEBIAN_DIR}
+        dch -b -v ${VERSION} $(git log -n 1 --pretty=format:"%s")
+        DEB_BUILD_OPTIONS=parallel=15 fakeroot debian/rules binary
+        mv -v ../*.deb ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}
+      popd

@@ -1,0 +1,2 @@
+#!/bin/sh
+ln -snf /opt/microros_f407 /opt/microros
