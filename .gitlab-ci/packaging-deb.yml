@@ -70,7 +70,7 @@ spec:
           cp -R $BASE_PATH/library_generation/extra_packages/* .
           cat extra_packages.repos
           vcs import --input extra_packages.repos
-          git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.4.11/amr/common/jialin_interfaces.git --depth 1  ros2/jialin_interfaces
+          git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.4.11/amr/common/jialin_interfaces.git --depth 1000  ros2/jialin_interfaces
           cd ros2/jialin_interfaces
           VERSION=$(git describe --tags --long).${CI_COMMIT_REF_NAME}.$(TZ="Asia/Shanghai" date +"%Y%m%d.%H%M%S").${DIST}
           VERSION=$(echo ${VERSION} | tr _ -)
