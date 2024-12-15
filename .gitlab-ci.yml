@@ -4,7 +4,7 @@ include:
 
   - project: amr/pipeline
     ref: "master"
-    file: "distribute.yml"
+    file: "distribute_target_repo.yml"
 
 stages:
   - packaging

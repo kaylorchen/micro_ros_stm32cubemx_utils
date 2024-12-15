@@ -70,9 +70,15 @@ spec:
           cp -R $BASE_PATH/library_generation/extra_packages/* .
           cat extra_packages.repos
           vcs import --input extra_packages.repos
-          git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.4.11/amr/common/jialin_interfaces.git --depth 1000  ros2/jialin_interfaces
+          if [ -z $UP_REPO ]; then
+            echo "UP_REPO is empty"
+            UP_REPO=master
+          fi
+          echo "upstream repository is $UP_REPO"
+          echo $UP_REPO | tee ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}/target_repo
+          git clone http://gitlab-ci-token:${CI_JOB_TOKEN}@192.168.4.11/amr/common/jialin_interfaces.git --depth 1000 -b ${UP_REPO}  ros2/jialin_interfaces
           cd ros2/jialin_interfaces
-          VERSION=$(git describe --tags --long).${CI_COMMIT_REF_NAME}.$(TZ="Asia/Shanghai" date +"%Y%m%d.%H%M%S").${DIST}
+          VERSION=$(git describe --tags --long).${UP_REPO}.$(TZ="Asia/Shanghai" date +"%Y%m%d.%H%M%S").${DIST}
           VERSION=$(echo ${VERSION} | tr _ -)
         popd > /dev/null
       popd > /dev/null
