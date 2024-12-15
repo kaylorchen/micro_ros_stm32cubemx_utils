@@ -7,5 +7,6 @@ Build-Depends: debhelper (>= 7.0.0~)
 
 Package: libmicroros-stm32f407-dev
 Architecture: all
-Description: a simple debian package
+Provides: libmicroros-stm32f429-dev
+Description: Micro ROS dev package
 
