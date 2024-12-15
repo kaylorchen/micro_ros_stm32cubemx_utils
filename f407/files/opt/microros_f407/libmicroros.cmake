@@ -1,5 +1,5 @@
-#set(micro_ros_base_path "/opt/microros")
-set(micro_ros_base_path "/home/kaylor/work/stm32/libmicroros-stm32f407-dev/files/opt/microros")
+set(micro_ros_base_path "/opt/microros")
+#set(micro_ros_base_path "/home/kaylor/work/stm32/libmicroros-stm32f407-dev/files/opt/microros")
 set(MICRO_ROS_INCLUDE_DIRS ${micro_ros_base_path}/microros_static_library/libmicroros/microros_include)
 include_directories(${MICRO_ROS_INCLUDE_DIRS})
 set(MICRO_ROS_LIB ${micro_ros_base_path}/microros_static_library/libmicroros/libmicroros.a)
