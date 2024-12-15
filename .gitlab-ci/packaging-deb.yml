@@ -39,13 +39,12 @@ spec:
   script:
     - set +e
     - chmod a+x $[[ inputs.prepare ]] &&  $[[ inputs.prepare ]]
-    - set -xe
     - SOURCE_ROOT=$(pwd)
     - BASE_PATH=${SOURCE_ROOT}/microros_static_library
     - echo "BASE_PATH = $BASE_PATH"
-    # - VERSION=$(git describe --tags --long).${CI_COMMIT_REF_NAME}.$(TZ="Asia/Shanghai" date +"%Y%m%d.%H%M%S").${DIST}
-    # - VERSION=$(echo ${VERSION} | tr _ -)
+    - rm -rf ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}
     - mkdir -pv ${SOURCE_ROOT}/.gitlab-ci/artifacts/${CI_COMMIT_SHA}/${CI_COMMIT_BRANCH}/${DIST}
+    - set -xe
     - cd /uros_ws
     - git clone http://192.168.4.11/pub/microros/micro_ros_setup.git --depth 1 -b kaylor 
     - rm install -rf
