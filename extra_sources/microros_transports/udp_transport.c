@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // --- LWIP ---
 #include "lwip/opt.h"
@@ -46,16 +47,38 @@ bool cubemx_transport_close(struct uxrCustomTransport * transport){
     return true;
 }
 
+int parse_ip_and_port(const char *str, int str_len, char ip[16], uint16_t *port) {
+  char *input = (char *)malloc(str_len);
+  memcpy(input, str, str_len);
+  memset(ip, 0, 16);
+  char *token = strtok(input, ":");
+  if (token != NULL) {
+    memcpy(ip, token, strlen(token));
+  } else {
+    exit(-1);
+  }
+  token = strtok(NULL, ":");
+  if (token != NULL) {
+    *port = (uint16_t)atoi(token);
+  } else {
+    *port = UDP_PORT;
+  }
+  free(input);
+}
+
 size_t cubemx_transport_write(struct uxrCustomTransport* transport, uint8_t * buf, size_t len, uint8_t * err){
     if (sock_fd == -1)
     {
         return 0;
     }
-    const char * ip_addr = (const char*) transport->args;
+    const char * input = (const char*) transport->args;
+	uint16_t port;
+ 	char ip[16];
+ 	parse_ip_and_port(input, strlen(input) + 1, ip, &port);
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
-    addr.sin_port = htons(UDP_PORT);
-    addr.sin_addr.s_addr = inet_addr(ip_addr);
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr(ip);
     int ret = 0;
     ret = sendto(sock_fd, buf, len, 0, (struct sockaddr *)&addr, sizeof(addr));
     size_t writed = ret>0? ret:0;
