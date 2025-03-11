@@ -4,28 +4,29 @@ name: Build and Upload Artifact
 on:
   push:
     branches:
-      - kaylor
+      - release-github
   pull_request:
     branches:
-      - kaylor
+      - release-github
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # 在 GitHub 提供的虚拟机上运行
+    container:
+      image: microros/micro_ros_static_library_builder:humble  # 指定自定义 Docker 镜像
+      options: --privileged
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Run build script
       run: |
-        docker pull microros/micro_ros_static_library_builder:humble
-        docker run --rm -v $(pwd):/project --env MICROROS_LIBRARY_FOLDER=microros_static_library microros/micro_ros_static_library_builder:humble
-        tar -czvf libmicroros.tar.gz microros_static_library/libmicroros
+        bash build.sh
 
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: libmicroros
-        path: libmicroros.tar.gz
+        name: microros-artifacts
+        path: artifacts
