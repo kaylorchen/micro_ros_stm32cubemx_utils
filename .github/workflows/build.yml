@@ -1,11 +1,12 @@
-name: Build and Upload Artifact
+name: Build MicroROS Lib
 
 # 触发工作流的事件
 on:
   workflow_run:
     workflows: ["kaylordut_interfaces CI"]  # 监听源仓库的工作流名称
     branches: [master]         # 仅在 main 分支触发
-    types: [completed]
+    types:
+      - completed
   push:
     branches:
       - release-github
